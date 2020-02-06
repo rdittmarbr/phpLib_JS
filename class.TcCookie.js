@@ -21,8 +21,6 @@ function TcCookies( aGet ) {
 
   this.debug = false;        // função de debug
 	this.get( aGet || false ); // carrega todos os cookies
-
-	this.debug = false;     // função de debug
 }
 /*------------------=-----------=------------------------------------------------------------------------------
 count               :Retorna a quantidade de cookies alocados

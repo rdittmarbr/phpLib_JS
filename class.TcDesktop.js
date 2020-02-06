@@ -22,8 +22,6 @@ TcLog               : Gerenciamento de Logs
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 -------------------------------------------------------------------------------------------------------------*/
 class TcLog {
-	/*===========================================================================================================
-	Gestão de erros
 	/*------------------=-----------=----------------------------------------------------------------------------
 	constructor         : Constroi a Classe
   - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -132,13 +130,17 @@ TcDesktop           : Classe de gerenciamento do desktop/Janelas e Formularios
 -------------------------------------------------------------------------------------------------------------*/
 function TcDesktop( aProject, aDebug ) {
 
-  this.FDebug    = aDebug || false;             // Log JS
-	this.FModule   = new TcModule();              // Módulos Externos - Não nativos
-	this.FEvent    = new TcEvent();               // Eventos
-	this.FMouse    = new TcMouse(true, this);     // Armazena o ponteiro do mouse
-	this.FCookie   = new TcCookies();             // Manipulação de Cookies
-	this.FVideo    = new TcVideos();              // Manipulação de Videos
-	this.FPackage  = new TcPackage();             // Controle dos Pacotes Ajax
+  this.FDebug = aDebug || false;             // Log JS
+	this.FModule = false, this.FEvent = false, this.FMouse = false; this.FCookie = false; this.FVideo = false; this.FPackage = false;	this.FGUI = false;
+
+	try {	this.FModule = new TcModule();} catch(e) {}           // Módulos Externos - Não nativos
+	try { this.FEvent  = new TcEvent();} catch(e) {}            // Eventos
+	try {	this.FMouse  = new TcMouse(true, this);} catch(e) {}  // Armazena o ponteiro do mouse
+	try {	this.FCookie = new TcCookies();} catch(e) {}          // Manipulação de Cookies
+	try { this.FVideo   = new TcVideos();} catch(e) {}          // Manipulação de Videos
+	try {	this.FPackage= new TcPackage();} catch(e) {}          // Controle dos Pacotes Ajax
+	try { this.FGUI     = new TcGUI();} catch(e) {}             // Manutenção do GUI
+
 	this.FVideo    = false;                       // Armazena os recursos da Camera
 	this.FSkin     = '';                          // Configurações do Skin
 	this.FAnimated = false;                       // Habilita as animações baseadas em javascript
@@ -147,6 +149,7 @@ function TcDesktop( aProject, aDebug ) {
 	// Setando a rotina de debug das classes filhas
 	this.FCookie.debug = this.debug;
 	this.FPackage.debug = this.debug;
+	this.FGUI.debug = this.debug;
 
   /*------------------=-----------=----------------------------------------------------------------------------
 	debug               : Exibe o log no console, se habilitado pelo ES_JSDEBUG
@@ -160,9 +163,6 @@ function TcDesktop( aProject, aDebug ) {
 			this.FDebug.addMessage( this.constructor.name, aLog || '', aType || 0 , aDom );
 		}
 	}
-
-
-
 	// Verificando a skin
 	if( this.getQueryURL('skin') ) {
 		this.setSkin(this.getQueryURL('skin'));
