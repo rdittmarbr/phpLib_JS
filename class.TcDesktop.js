@@ -6,174 +6,67 @@ Linguaguem     : javascript
 Modulo         : TcDesktop - Gerenciamento das definições das telas/acessos/recuperação de informações
 Dependencias   : TcAjax // TcVideo
 -------------------------------------------------------------------------------------------------------------*/
-function TcPackage() {
-	this.FCount   = 0;
-	this.debug    = false;
-}
-
-function TcModule() {
-	this.FCount   = 0;
-	this.debug    = false;
-}
-
-/*------------------=-----------=------------------------------------------------------------------------------
-TcLog               : Gerenciamento de Logs
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
--------------------------------------------------------------------------------------------------------------*/
-class TcLog {
-	/*------------------=-----------=----------------------------------------------------------------------------
-	constructor         : Constroi a Classe
-  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	aProject            :string     :Nome do Projeto
-	aPrint							:boolean    :Exibe no console a mensagem
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	-----------------------------------------------------------------------------------------------------------*/
-	constructor( ) {
-		this.FPrint   = false;    // Imprime a mensagem de log ao incluir no debug
-		this.FLog     = [];       // Log
-		var FOwner = ''           // Variável Privada Owner (para agrupamento do log)
-		this.getPreviousOwner = function() { return this.FOwner; }
-		this.setPreviousOwner = function( a ) { this.FOwner = a ; }
-	}
-  /*------------------=-----------=----------------------------------------------------------------------------
-	addMessage          : Adiciona uma mensagem ao log
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	aOwner 							: string    : Função original
-	aLog                : string    : Texto auxiliar para o log
-	aType               : int       : Tipo de log (0 - Info // 1 - Log // 2 - Error)
-	aDom								: DOM       : Elemento DOM
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	-----------------------------------------------------------------------------------------------------------*/
-	addMessage( aOwner, aLog , aType , aDom ) {
-		aOwner = aOwner || '', aLog = aLog || " ", aType = aType || 0, aDom = aDom || " ";
-		var aData = new Date();
-		var aModule = this.getStack(2);
-		this.FLog.push([aOwner, aModule, aLog, aType, isDom(aDom?aDom.innerHTML:aDom), aData]);
-		if( this.FPrint )
-		  this.printLine(aOwner, aModule, aLog, aType, aDom, aData);
-	}
-	log( aOwner, aLog , aDom ) { this.addMessage( aOwner, aLog, 0 , aDom ) };
-	info( aOwner, aLog , aDom ) { this.addMessage( aOwner, aLog, 1, aDom ) };
-	error( aOwner, aLog , aDom ) { this.addMessage( aOwner, aLog, 2, aDom ) };
-  /*------------------=-----------=----------------------------------------------------------------------------
-	print               : Imprime todo o log armazenado em memória
-	printLine           : Imprime o log no momento da solicitação
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	aOwner							:string    : Nome do Projeto
-	aModule             :string    : Classe Pai que executou o log
-	aLog                :string    : Mnensagem auxiliar referente ao log
-	aType 							:int       : Tipo de log (0 - Info // 1 - Log // 2 - Error)
-	aDom  							:DOM 			 : Nodo do log
-	addData							:date			 : Data/Hora da inclusao do log
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	-----------------------------------------------------------------------------------------------------------*/
-  print( ) {
-    this.FLog.forEach( this.printLine );
-	}
-	printLine( aOwner, aModule, aLog , aType , aDom , aData ) {
-		// Realiando o agrupamento por Classe
-		if( this.getPreviousOwner() != aOwner) {
-			console.groupEnd(this.getPreviousOwner());
-			console.group(aOwner);
-			this.setPreviousOwner(aOwner);
-		}
-		var aMsg = aOwner + '.' + aModule;
-	  if (aType == 0) {
-	    console.log(aMsg, aLog, aDom);
-	  } else if (aType == 1) {
-	    console.info(aMsg, aLog, aDom);
-	  } else if (aType == 2) {
-	    console.error(aMsg, aLog, aDom);
-	  } else {
-	    console.log(aMsg, aLog, aDom);
-	  }
-	}
-  /*------------------=-----------=----------------------------------------------------------------------------
-	setPrint						: Altera a Forma de exibição do LOG
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	aPrint  						:boolean    : Exibe S/N o log no momento da criação
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	-----------------------------------------------------------------------------------------------------------*/
-	setPrint( aPrint ) {
-		this.FPrint = aPrint || false;
-
-		if( this.FPrint ) {
-			//Imprimindo o Debug
-			console.clear;
-			console.log('ES_JSDEBUG ON');
-		}
-	}
-	printDOM() {
-	}
-	updateDB() {
-	}
-	// Adaptado de : https://stackoverflow.com/questions/29572466/how-do-you-find-out-the-caller-function-in-javascript-when-use-strict-is-enabled
-	getStack( a ) {
-	  var cName; a = a || 0;
-	  try { throw new Error(); }
-	  catch (e) {
-	    var st = e.stack, m, re = /(\d+):(\d+)/;
-	    st = st.split(/\s*\n\s*/)[a+1];  // recuperando stack
-	    st = st.replace("https+://","");
-	    st = st.split(/(\w+)@|at (\w+) \(/g);
-	    cName = st[2] || st[1] +" ("+ re.exec(st)[0] + ")";
-	  }
-	  return(cName);
-	};
-}
 
 /*------------------=-----------=------------------------------------------------------------------------------
 TcDesktop           : Classe de gerenciamento do desktop/Janelas e Formularios
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 -------------------------------------------------------------------------------------------------------------*/
-function TcDesktop( aProject, aDebug ) {
+class TcDesktop() {
 
-  this.FDebug = aDebug || false;             // Log JS
-	this.FModule = false, this.FEvent = false, this.FMouse = false; this.FCookie = false; this.FVideo = false; this.FPackage = false;	this.FGUI = false;
-
-	try {	this.FModule = new TcModule();} catch(e) {}           // Módulos Externos - Não nativos
-	try { this.FEvent  = new TcEvent();} catch(e) {}            // Eventos
-	try {	this.FMouse  = new TcMouse(true, this);} catch(e) {}  // Armazena o ponteiro do mouse
-	try {	this.FCookie = new TcCookies();} catch(e) {}          // Manipulação de Cookies
-	try { this.FVideo   = new TcVideos();} catch(e) {}          // Manipulação de Videos
-	try {	this.FPackage= new TcPackage();} catch(e) {}          // Controle dos Pacotes Ajax
-	try { this.FGUI     = new TcGUI();} catch(e) {}             // Manutenção do GUI
-
-	this.FVideo    = false;                       // Armazena os recursos da Camera
-	this.FSkin     = '';                          // Configurações do Skin
-	this.FAnimated = false;                       // Habilita as animações baseadas em javascript
-	this.FURL      = '';                          // URL do sistema (se não informado)
-
-	// Setando a rotina de debug das classes filhas
-	this.FCookie.debug = this.debug;
-	this.FPackage.debug = this.debug;
-	this.FGUI.debug = this.debug;
-
-  /*------------------=-----------=----------------------------------------------------------------------------
-	debug               : Exibe o log no console, se habilitado pelo ES_JSDEBUG
-	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-	aLog                : string    : Texto auxiliar para o log
-	aType               : int       : Tipo de log (0 - Info // 1 - Log // 2 - Error)
+	/*------------------=-----------=----------------------------------------------------------------------------
+	constructor         : Função executada quando criada a classe
+  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+	aProject            :string     :Nome do Projeto
+	aDebug							:boolean    :TcLog()
 	- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 	-----------------------------------------------------------------------------------------------------------*/
-	this.debug = function ( aLog , aType , aDom ) {
-		if ( this.FDebug.addMessage ) {
-			this.FDebug.addMessage( this.constructor.name, aLog || '', aType || 0 , aDom );
+	constructor( aProject, aDebug ) {
+	  this.FDebug = aDebug || false;             // Log JS
+		this.FModule = false, this.FEvent = false, this.FMouse = false; this.FCookie = false; this.FVideo = false; this.FPackage = false;	this.FGUI = false;
+
+		try {	this.FModule = new TcModule(); } catch(e) {}          // Módulos Externos - Não nativos
+		try { this.FEvent  = new TcEvent();  } catch(e) {}          // Eventos
+		try {	this.FMouse  = new TcMouse(true, this);} catch(e) {}  // Armazena o ponteiro do mouse
+		try {	this.FCookie = new TcCookies();} catch(e) {}          // Manipulação de Cookies
+		try { this.FVideo  = new TcVideos(); } catch(e) {}          // Manipulação de Videos
+		try {	this.FPackage= new TcPackage();} catch(e) {}          // Controle dos Pacotes Ajax
+		try { this.FGUI    = new TcGUI();    } catch(e) {}          // Manutenção do GUI
+
+		this.FVideo    = false;                       // Armazena os recursos da Camera
+		this.FSkin     = '';                          // Configurações do Skin
+		this.FAnimated = false;                       // Habilita as animações baseadas em javascript
+		this.FURL      = '';                          // URL do sistema (se não informado)
+
+		// Setando a rotina de debug das classes filhas
+		if( this.FCookie.debug ) this.FCookie.debug = this.debug;
+		if( this.FPackage.debug ) this.FPackage.debug = this.debug;
+		if( this.FGUI.debug ) this.FGUI.debug = this.debug;
+
+	  /*------------------=-----------=----------------------------------------------------------------------------
+		debug               : Exibe o log no console, se habilitado pelo ES_JSDEBUG
+		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+		aLog                : string    : Texto auxiliar para o log
+		aType               : int       : Tipo de log (0 - Info // 1 - Log // 2 - Error)
+		- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+		-----------------------------------------------------------------------------------------------------------*/
+		debug = function ( aLog , aType , aDom ) {
+			if ( this.FDebug.addMessage ) {
+				this.FDebug.addMessage( this.constructor.name, aLog || '', aType || 0 , aDom );
+			}
 		}
+		// Verificando a skin
+		if( this.getQueryURL('skin') ) {
+			this.setSkin(this.getQueryURL('skin'));
+		}
+	  /*document.addEventListener('focusin', () => { console.log("focusin")});
+		document.addEventListener('focus', () => { console.log("focus")});
+		document.addEventListener('blur', () => { console.log("blur")});
+		document.addEventListener('mousemove', () => { console.log("mousemove")});
+		document.addEventListener('visibilitychange', () => { console.log("visibilitychange")});
+		document.addEventListener('blur', () => { console.log("blur")});   // Elemento perde o foco
+		*/
 	}
-	// Verificando a skin
-	if( this.getQueryURL('skin') ) {
-		this.setSkin(this.getQueryURL('skin'));
-	}
-  /*document.addEventListener('focusin', () => { console.log("focusin")});
-	document.addEventListener('focus', () => { console.log("focus")});
-	document.addEventListener('blur', () => { console.log("blur")});
-	document.addEventListener('mousemove', () => { console.log("mousemove")});
-	document.addEventListener('visibilitychange', () => { console.log("visibilitychange")});
-	document.addEventListener('blur', () => { console.log("blur")});   // Elemento perde o foco
-	*/
 }
 /*=============================================================================================================
 Gestão de erros
